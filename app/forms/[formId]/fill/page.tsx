@@ -9,13 +9,13 @@ import ErrorPage from '@/components/ErrorPage';
 import * as React from 'react';
 
 interface FillFormPageProps {
-  params: {
+  params: Promise<{
     formId: string;
-  };
+  }>;
 }
 
 export default function FillFormPage({ params }: FillFormPageProps) {
-  const {formId} = params;
+  const {formId} = React.use(params);
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
