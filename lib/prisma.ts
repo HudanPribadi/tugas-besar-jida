@@ -1,6 +1,6 @@
 // --- File: lib/prisma.ts ---
 // Your Prisma client setup, now with TypeScript.
-import { PrismaClient } from '@/app/generated/prisma/edge';
+import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { Pool } from '@neondatabase/serverless';
 
