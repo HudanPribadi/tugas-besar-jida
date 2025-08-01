@@ -3,15 +3,16 @@ import { Form, FormResponse } from '@/types';
 import { redirect } from 'next/navigation';
 import ResponseViewer from '@/components/ResponseViewer';
 import Link from 'next/link';
+import * as React from 'react';
 
 interface ViewResponsesPageProps {
-  params: {
+  params: Promise<{
     formId: string;
-  };
+  }>;
 }
 
 export default async function ViewResponsesPage({ params }: ViewResponsesPageProps) {
-  const { formId } = await params;
+  const { formId } = React.use(params);
   let form: Form | null = null;
   let responses: FormResponse[] = [];
   let error: string | null = null;
