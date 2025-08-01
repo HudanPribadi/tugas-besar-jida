@@ -4,14 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { FormResponse, ResponseAnswer } from '@/types';
 
-type RouteParams = {
-  params: { formId: string };
-};
-
-
 export async function POST(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: { formId: string } }
 ) {
   const formId = params.formId;
   const { answers } = await request.json();
