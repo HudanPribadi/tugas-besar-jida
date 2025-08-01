@@ -1,59 +1,84 @@
-// --- File: app/api/forms/[formId]/submit/route.ts (Public API for Form Submission) ---
-// This is an API route for unauthenticated form submissions.
+// --- File: app/api/forms/[formId]/submit/route.ts ---
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { FormResponse, ResponseAnswer } from '@/types';
 
-
-
-export async function POST(
-  request: NextRequest,
-  { params }: {params: { formId: string }}
-) {
-  const formId = params.formId;
-  const { answers } = await request.json();
-
-  if (!formId || !answers || !Array.isArray(answers)) {
-    return NextResponse.json({ message: 'Invalid request data' }, { status: 400 });
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    // Verify form exists (optional, but good for data integrity)
+    // Extract formId from the URL path
+    const pathParts = request.nextUrl.pathname.split('/');
+    const formId = pathParts[3]; // [0]='', [1]='api', [2]='forms', [3]=formId
+    
+    if (!formId) {
+      return NextResponse.json(
+        { message: 'Form ID is missing from URL' },
+        { status: 400 }
+      );
+    }
+
+    const { answers } = await request.json();
+
+    // Validate input
+    if (!answers || !Array.isArray(answers)) {
+      return NextResponse.json(
+        { message: 'Invalid request data' },
+        { status: 400 }
+      );
+    }
+
+    // Verify form exists
     const formExists = await prisma.form.findUnique({
       where: { id: formId },
       select: { id: true },
     });
 
     if (!formExists) {
-      return NextResponse.json({ message: 'Form not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Form not found' },
+        { status: 404 }
+      );
     }
 
-    // Create the form response record
+    // Create the response first
     const newResponse = await prisma.formResponse.create({
-      data: {
-        formId: formId,
-      },
+      data: { formId },
     });
 
-    // Create individual answers linked to the response
-    const responseAnswersData = answers.map((answer: { fieldId: string; value: string }) => ({
-      responseId: newResponse.id,
-      fieldId: answer.fieldId,
-      value: answer.value,
-    }));
-
+    // Then create all answers with the correct responseId
     await prisma.responseAnswer.createMany({
-      data: responseAnswersData,
+      data: answers.map((answer: { fieldId: string; value: string }) => ({
+        responseId: newResponse.id,
+        fieldId: answer.fieldId,
+        value: answer.value,
+      })),
     });
 
-    return NextResponse.json({ success: true, message: 'Response submitted successfully!' }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Response submitted successfully!',
+        responseId: newResponse.id,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error submitting form response:', error);
-    return NextResponse.json({ message: 'Failed to submit response.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Failed to submit response' },
+      { status: 500 }
+    );
   }
 }
 
-// You might also want a GET handler for testing the route, but not necessary for public submission
-export async function GET() {
-  return NextResponse.json({ message: 'This is the form submission API route. Use POST to submit responses.' }, { status: 200 });
+export async function GET(request: NextRequest) {
+  // Extract formId from URL for GET requests too
+  const pathParts = request.nextUrl.pathname.split('/');
+  const formId = pathParts[3];
+  
+  return NextResponse.json(
+    { 
+      message: 'Use POST to submit form responses',
+      formId: formId || 'not provided'
+    },
+    { status: 200 }
+  );
 }
