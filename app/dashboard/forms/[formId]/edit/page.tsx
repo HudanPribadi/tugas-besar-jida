@@ -1,4 +1,4 @@
-// --- File: app/dashboard/forms/[formId]/edit/page.tsx (Edit Form Page - Client Component) ---
+// --- File: app/dashboard/forms/[formId]/edit/page.tsx ---
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,15 +9,18 @@ import { Form, FormField, FormFieldType } from '@/types';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ErrorPage from '@/components/ErrorPage';
+import * as React from 'react';
 
 interface EditFormPageProps {
-  params: {
+  params: Promise<{
     formId: string;
-  };
+  }>;
 }
 
 export default function EditFormPage({ params }: EditFormPageProps) {
-  const formId = params.formId;
+  // Unwrap the params promise
+  const { formId } = React.use(params);
+  
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +28,7 @@ export default function EditFormPage({ params }: EditFormPageProps) {
   const [fieldToEdit, setFieldToEdit] = useState<FormField | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-
+  
   const [newFieldType, setNewFieldType] = useState<FormFieldType>('text');
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldRequired, setNewFieldRequired] = useState(false);
